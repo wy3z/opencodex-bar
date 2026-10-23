@@ -184,6 +184,42 @@ test("normalizes response envelopes, accounts, quotas, and usage aliases", funct
   assertEqual(snapshot.usage.models[1].model, "gpt-test")
 end)
 
+test("recognizes Codex short-window quota aliases", function()
+  local resetSeconds = 1792752916
+  local host = MockNoctalia.new({
+    config = { admin_token_file = "" },
+    responses = successfulRoutes({
+      ["/api/providers"] = MockNoctalia.ok({
+        providers = { { id = "openai", authMode = "forward" } },
+      }),
+      ["/api/codex-auth/accounts"] = MockNoctalia.ok({
+        accounts = {
+          {
+            id = "plus-account",
+            plan = "plus",
+            quota = {
+              shortPercent = 100,
+              shortResetAt = resetSeconds,
+              weeklyPercent = 20,
+            },
+          },
+        },
+      }),
+    }),
+  }):loadService()
+
+  local provider = findBy(host.state.snapshot.providers, "id", "openai")
+  assertTrue(provider, "OpenAI provider should be present")
+  local quota = provider.accounts[1].quota
+  assertTrue(quota, "short-window fields should produce a quota")
+  assertEqual(#quota.windows, 2)
+  assertEqual(quota.windows[1].id, "five_hour")
+  assertEqual(quota.windows[1].usedPercent, 100)
+  assertEqual(quota.windows[1].resetAtMs, resetSeconds * 1000)
+  assertEqual(quota.windows[2].id, "weekly")
+  assertEqual(quota.windows[2].usedPercent, 20)
+end)
+
 test("normalizes authorization failures into the public snapshot", function()
   local host = MockNoctalia.new({
     config = { admin_token_file = "" },

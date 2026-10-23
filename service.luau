@@ -318,7 +318,9 @@ local function normalizeQuota(value)
     })
   end
 
-  add("five_hour", noctalia.tr("window.five_hour"), source.fiveHourPercent, source.fiveHourResetAt)
+  add("five_hour", noctalia.tr("window.five_hour"),
+    source.fiveHourPercent or source.shortPercent,
+    source.fiveHourResetAt or source.shortResetAt)
   add("weekly", noctalia.tr("window.weekly"), source.weeklyPercent, source.weeklyResetAt)
   add("monthly", noctalia.tr("window.monthly"), source.monthlyPercent, source.monthlyResetAt)
 
