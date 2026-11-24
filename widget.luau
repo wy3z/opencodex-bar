@@ -31,13 +31,6 @@ local function cumulativeUsed(snapshot)
   local total, counted = 0, 0
   for _, provider in ipairs(snapshot.providers or {}) do
     if common.providerVisible(provider) then
-      if #(provider.accounts or {}) == 0 then
-        local used = common.maxQuota(provider.quota)
-        if used ~= nil then
-          total = total + used
-          counted = counted + 1
-        end
-      end
       local hasAccountQuota = common.anyAccountQuota(provider)
       for _, account in ipairs(provider.accounts or {}) do
         local used = common.accountUsed(provider, account, hasAccountQuota)
@@ -60,13 +53,6 @@ local function iconProvider(snapshot)
   for _, provider in ipairs(snapshot.providers or {}) do
     if common.providerVisible(provider) then
       if fallback == nil then fallback = provider.id end
-      if #(provider.accounts or {}) == 0 then
-        local used = common.maxQuota(provider.quota)
-        if used ~= nil and (tightestUsed == nil or used > tightestUsed) then
-          tightestUsed = used
-          tightestId = provider.id
-        end
-      end
       local hasAccountQuota = common.anyAccountQuota(provider)
       for _, account in ipairs(provider.accounts or {}) do
         if account.active == true then return provider.id end

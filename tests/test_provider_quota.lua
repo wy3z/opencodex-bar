@@ -59,19 +59,6 @@ local function find(node, key)
   end
 end
 
-local function widgetUsed(providers, config)
-  return find(loadSurface("widget.luau", providers, config), "used").props.text
-end
-
-assert(widgetUsed({go}) == "28%")
-assert(widgetUsed({go, codex, empty, disabled}) == "64%")
-assert(widgetUsed({go, codex}, {hidden_providers = "opencode-go"}) == "100%")
-assert(widgetUsed({empty}) == "—")
-local zero = { id = "zero", enabled = true, accounts = {}, quota = quota(0) }
-assert(widgetUsed({zero}) == "0%")
-local glyph = find(loadSurface("widget.luau", {go, empty}, {icon_source = "active"}), "glyph")
-assert(glyph.props.name == "robot")
-
 local panel = loadSurface("panel.luau", {go, empty})
 assert(find(panel, "provider:opencode-go:1:bar").props.progress == 0)
 assert(find(panel, "provider:opencode-go:2:bar").props.progress == 0.02)
