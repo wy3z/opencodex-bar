@@ -550,12 +550,16 @@ local function accountsTab(body)
     table.insert(body, ui.row({ key = "hdr:" .. provider.id, gap = 8, align = "center" }, header))
 
     if #accounts == 0 then
-      table.insert(body, ui.label({
-        key = "noacct:" .. provider.id,
-        text = noctalia.tr("account.none"),
-        color = "on_surface/0.6",
-        fontSize = 11,
-      }))
+      if provider.quota ~= nil then
+        quotaRows(body, provider.quota, "provider:" .. provider.id)
+      else
+        table.insert(body, ui.label({
+          key = "noacct:" .. provider.id,
+          text = noctalia.tr("account.none"),
+          color = "on_surface/0.6",
+          fontSize = 11,
+        }))
+      end
     end
     for _, account in ipairs(accounts) do
       accountCard(body, provider, account, hasAccountQuota, named)
