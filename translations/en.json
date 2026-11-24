@@ -38,6 +38,18 @@
     "theme_colors": {
       "label": "Use theme colours",
       "description": "Colour quotas with Noctalia's palette instead of the OpenCodex dashboard's green/amber/red."
+    },
+    "quota_mode": {
+      "label": "Quota aggregation",
+      "description": "Choose how the widget combines visible quota windows.",
+      "legacy": "Legacy (account average)",
+      "provider": "Selected provider",
+      "maximum": "Global maximum",
+      "average": "Average (including accountless providers)"
+    },
+    "quota_provider": {
+      "label": "Provider ID",
+      "description": "Provider ID to monitor, e.g. openai or opencode-go. OpenAI and Codex are aliases."
     }
   },
   "panel": {
@@ -149,7 +161,10 @@
       "one": "{used}% used on 1 account",
       "other": "{used}% used across {count} accounts"
     },
-    "no_quota": "No quota reported"
+    "no_quota": "No quota reported",
+    "provider_tooltip": "{provider}: {used}% maximum used",
+    "maximum_tooltip": "{used}% maximum used across visible providers",
+    "average_tooltip": "{used}% average used across visible accounts and accountless providers"
   },
   "weekday": {
     "mon": "M",

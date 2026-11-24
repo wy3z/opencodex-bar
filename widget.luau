@@ -27,7 +27,7 @@ end
 
 -- Mean consumption over every account that reports a quota: "you have spent
 -- this much of your capacity".
-local function cumulativeUsed(snapshot)
+local function legacyUsed(snapshot)
   local total, counted = 0, 0
   for _, provider in ipairs(snapshot.providers or {}) do
     if common.providerVisible(provider) then
@@ -43,6 +43,41 @@ local function cumulativeUsed(snapshot)
   end
   if counted == 0 then return nil end
   return total / counted, counted
+end
+
+-- New modes include accountless providers once, without inventing accounts.
+local function quotaUsed(snapshot, mode, selected)
+  if mode ~= "provider" and mode ~= "maximum" and mode ~= "average" then
+    return legacyUsed(snapshot)
+  end
+  local total, counted, maximum, tightest = 0, 0, nil, nil
+  local function add(used, id)
+    if used == nil then return end
+    total, counted = total + used, counted + 1
+    if maximum == nil or used > maximum then
+      maximum, tightest = used, id
+    end
+  end
+  for _, provider in ipairs(snapshot.providers or {}) do
+    local id = provider.id:lower()
+    local matches = id == selected
+      or (id == "codex" and selected == "openai")
+      or (id == "openai" and selected == "codex")
+    if common.providerVisible(provider) and (mode ~= "provider" or matches) then
+      local accounts = provider.accounts or {}
+      if #accounts == 0 then
+        add(common.maxQuota(provider.quota), provider.id)
+      else
+        local hasAccountQuota = common.anyAccountQuota(provider)
+        for _, account in ipairs(accounts) do
+          add(common.accountUsed(provider, account, hasAccountQuota), provider.id)
+        end
+      end
+    end
+  end
+  if counted == 0 then return nil, 0 end
+  if mode == "average" then return total / counted, counted end
+  return maximum, counted, tightest
 end
 
 -- Which provider the mark speaks for: whichever account OpenCodex is currently
@@ -129,13 +164,19 @@ local function usedColor(used, status)
   return usedColorFor(used)
 end
 
-local function tooltip(snapshot, used, counted)
+local function tooltip(snapshot, used, counted, quotaMode, selected)
   local lines = { noctalia.tr("panel.title") }
   if used ~= nil then
+    if quotaMode == "provider" or quotaMode == "maximum" or quotaMode == "average" then
+      table.insert(lines, noctalia.tr("bar." .. quotaMode .. "_tooltip", {
+        used = string.format("%.0f", used), provider = selected,
+      }))
+    else
     table.insert(lines, noctalia.trp("bar.used_tooltip", counted, {
       used = string.format("%.0f", used),
       count = tostring(counted),
     }))
+    end
   else
     table.insert(lines, noctalia.tr("bar.no_quota"))
   end
@@ -148,7 +189,9 @@ end
 local function render(snapshot)
   snapshot = snapshot or {}
   local status = snapshot.status or "loading"
-  local used, counted = cumulativeUsed(snapshot)
+  local quotaMode = configured("quota_mode", "legacy")
+  local selected = tostring(configured("quota_provider", "openai")):lower():match("^%s*(.-)%s*$")
+  local used, counted, tightest = quotaUsed(snapshot, quotaMode, selected)
   local color = usedColor(used, status)
 
   local mode = configured("icon_source", "bars")
@@ -159,11 +202,12 @@ local function render(snapshot)
   if mode ~= "bars" then
     glyph = mode == "fixed"
       and configured("glyph", "brand-openai")
-      or common.providerGlyph(iconProvider(snapshot)) or "robot"
+      or common.providerGlyph(quotaMode == "provider" and (tightest or selected)
+        or (quotaMode == "maximum" and tightest) or iconProvider(snapshot)) or "robot"
     if critical and mode ~= "fixed" then glyph = "alert-triangle-filled" end
   end
 
-  local tip = tooltip(snapshot, used, counted or 0)
+  local tip = tooltip(snapshot, used, counted or 0, quotaMode, selected)
   local visual = table.concat({
     mode, glyph or "", usedText, tostring(color), tostring(showPct), noctalia.isDarkMode() and "d" or "l",
   }, "|")

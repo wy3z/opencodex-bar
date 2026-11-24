@@ -103,6 +103,37 @@ entry = "widget.luau"
   default         = "brand-openai"
   visible_when    = { key = "icon_source", values = ["fixed"] }
 
+  [[widget.setting]]
+  key             = "quota_mode"
+  type            = "select"
+  label_key       = "settings.quota_mode.label"
+  description_key = "settings.quota_mode.description"
+  default         = "legacy"
+
+    [[widget.setting.options]]
+    value     = "legacy"
+    label_key = "settings.quota_mode.legacy"
+
+    [[widget.setting.options]]
+    value     = "provider"
+    label_key = "settings.quota_mode.provider"
+
+    [[widget.setting.options]]
+    value     = "maximum"
+    label_key = "settings.quota_mode.maximum"
+
+    [[widget.setting.options]]
+    value     = "average"
+    label_key = "settings.quota_mode.average"
+
+  [[widget.setting]]
+  key             = "quota_provider"
+  type            = "string"
+  label_key       = "settings.quota_provider.label"
+  description_key = "settings.quota_provider.description"
+  default         = "openai"
+  visible_when    = { key = "quota_mode", values = ["provider"] }
+
 [[panel]]
 id              = "panel"
 entry           = "panel.luau"
