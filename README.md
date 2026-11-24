@@ -41,9 +41,12 @@ Right-click the widget or use Refresh to force a quota refresh. The link button 
 | `force_refresh_minutes` | Plugin | `int` | `10` | Quota refresh interval, 5–60 min. |
 | `hidden_providers` | Plugin | `string` | empty | Comma-separated ids to hide (`openai`/`codex` are aliases). Does not change OpenCodex routing. |
 | `theme_colors` | Plugin | `bool` | `false` | Use Noctalia colours instead of the OpenCodex palette. |
-| `show_percentage` | Widget | `bool` | `true` | Mean quota used next to the icon. |
+| `show_percentage` | Widget | `bool` | `true` | Selected quota metric next to the icon. |
 | `icon_source` | Widget | `select` | `bars` | `bars`, `active`, or `fixed`. |
 | `glyph` | Widget | `glyph` | `brand-openai` | Used when `icon_source` is `fixed`. |
+
+| `quota_mode` | Widget | `select` | `legacy` | Legacy account average, selected provider maximum, global maximum, or average including accountless providers. |
+| `quota_provider` | Widget | `string` | `openai` | Provider ID for provider mode. |
 
 Disabled OpenCodex providers are hidden the same way. Hidden providers are stripped from every figure. Cached-input and reasoning-output totals are omitted when anything is hidden (OpenCodex does not attribute them).
 
@@ -54,5 +57,5 @@ Disabled OpenCodex providers are hidden the same way. Hidden providers are strip
 - Files: reads the token file. Writes nothing locally. Account selection and reset-credit use mutate OpenCodex state only after an in-panel confirmation.
 - Process: `xdg-open` with the dashboard URL. Nothing else is spawned.
 - Daily costs are estimates, not invoices. The grid is request volume, not spend.
-- Bar % is the mean of each visible account's busiest quota window.
+- Bar % defaults to the legacy mean of each visible account's busiest quota window. New modes include accountless provider quotas once; provider mode shows the selected provider's maximum, or no quota if unavailable. Panel visibility is unaffected.
 - Accounts are labelled alias / log label / "Main Account" / OpenCodex id — never email. Subscription plans use the values reported by OpenCodex.
